@@ -4,6 +4,7 @@ import org.otropets.travelplanner.auth.dto.AuthResponse;
 import org.otropets.travelplanner.auth.dto.LoginRequest;
 import org.otropets.travelplanner.auth.dto.RegisterRequest;
 import org.otropets.travelplanner.security.JwtService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -45,5 +46,9 @@ public class UserService {
       return new AuthResponse(user.getUsername(), user.getEmail(), token);
     }
 
+    public User getCurrentUser(){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+    }
 
 }
