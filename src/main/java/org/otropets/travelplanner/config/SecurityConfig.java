@@ -1,6 +1,6 @@
 package org.otropets.travelplanner.config;
 
-import org.otropets.travelplanner.auth.UserPrincipal;
+
 import org.otropets.travelplanner.security.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,8 +10,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import static org.apache.catalina.webresources.TomcatURLStreamHandlerFactory.disable;
 
 @Configuration
 public class SecurityConfig {

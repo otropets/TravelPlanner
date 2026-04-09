@@ -6,5 +6,4 @@ import java.util.List;
 
 public interface TripRepository extends JpaRepository<Trip, Long> {
     List<Trip> findByCreatedBy(User createdBy);
-    Trip save();
 }
