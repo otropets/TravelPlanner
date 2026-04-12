@@ -12,12 +12,14 @@ import org.otropets.travelplanner.trip.TripRepository;
 import org.otropets.travelplanner.trip.TripService;
 import org.otropets.travelplanner.trip.dto.CreateTripRequest;
 import org.otropets.travelplanner.trip.dto.TripResponse;
+import org.otropets.travelplanner.trip.dto.UpdateTripRequest;
+
 import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -60,7 +62,57 @@ public class TripServiceTests {
         assertDoesNotThrow(()-> tripService.deleteTrip(1L));
     }
 
+    @Test
+    void getTripSuccessfully(){
+        User mockuser = User.builder().userId(1L).username("john")
+                .password("password123").email("john@gmail.com").firstName("john")
+                .lastName("mcneil").build();
+        Trip mockTrip = Trip.builder().tripId(2L).tripName("Trip to Paris").destination("Paris")
+                .startDate(LocalDate.of(2026, 1,1)).endDate(LocalDate.of(2026, 1, 4)).createdBy(mockuser).build();
+        when(repository.findById(2L)).thenReturn(Optional.of(mockTrip));
 
+        TripResponse response = tripService.getTrip(2L);
+
+        assertEquals("Trip to Paris", response.getTripName());
+        assertEquals("Paris", response.getDestination());
+        assertEquals(LocalDate.of(2026, 1, 1), response.getStartDate());
+        assertEquals(LocalDate.of(2026, 1, 4), response.getEndDate());
+    }
+
+    @Test
+    void deleteTripUnsuccessfullyTripNotFound(){
+        when(repository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> tripService.deleteTrip(1L));
+    }
+    @Test
+    void deleteTripUnsuccessfullyNoAccess() {
+        User mockUser = User.builder().userId(1L).username("john").password("password123").email("john@email.com").firstName("john").lastName("mcneil").build();
+        User mockUser2 = User.builder().userId(2L).username("john").password("password123").email("john@email.com").firstName("john").lastName("mcneil").build();
+
+        Trip mockTrip = Trip.builder().tripId(2L).tripName("Trip to Paris").destination("Paris")
+                .startDate(LocalDate.of(2026, 1,1)).endDate(LocalDate.of(2026, 1, 4)).createdBy(mockUser).build();
+        when(repository.findById(1L)).thenReturn(Optional.of(mockTrip));
+        when(userService.getCurrentUser()).thenReturn(mockUser2);
+
+        assertThrows(RuntimeException.class, () -> tripService.deleteTrip(1L));
+    }
+
+    @Test
+    void updateTripSuccessfully(){
+        User mockUser = User.builder().userId(1L).username("john").password("password123").email("john@email.com").firstName("john").lastName("mcneil").build();
+        Trip mockTrip = Trip.builder().tripId(2L).tripName("Trip to Paris").destination("Paris")
+                .startDate(LocalDate.of(2026, 1,1)).endDate(LocalDate.of(2026, 1, 4)).createdBy(mockUser).build();
+
+        when(userService.getCurrentUser()).thenReturn(mockUser);
+        when(repository.findById(2L)).thenReturn(Optional.of(mockTrip));
+
+        UpdateTripRequest request = new UpdateTripRequest("updated trip to Paris", null, null, null);
+        TripResponse response = tripService.updateTrip(2L, request);
+
+        assertNotNull(response);
+        assertEquals("updated trip to Paris", response.getTripName());
+        assertEquals("Paris", response.getDestination());
+    }
 
 
 }

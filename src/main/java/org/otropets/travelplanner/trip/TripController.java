@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/trips")
 public class TripController {
@@ -37,6 +39,10 @@ public class TripController {
         TripResponse response = tripService.getTrip(id);
         return ResponseEntity.ok(response);
     }
-
+    @GetMapping
+    public ResponseEntity<List<TripResponse>> getUserTrips(){
+        List<TripResponse> trips = tripService.getUserTrips();
+        return ResponseEntity.ok(trips);
+    }
 
 }

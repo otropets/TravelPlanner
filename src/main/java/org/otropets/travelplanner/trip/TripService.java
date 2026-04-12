@@ -1,10 +1,15 @@
 package org.otropets.travelplanner.trip;
 
+import org.otropets.travelplanner.auth.User;
 import org.otropets.travelplanner.auth.UserService;
 import org.otropets.travelplanner.trip.dto.CreateTripRequest;
 import org.otropets.travelplanner.trip.dto.TripResponse;
 import org.otropets.travelplanner.trip.dto.UpdateTripRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Service
@@ -32,9 +37,8 @@ public class TripService {
     public void deleteTrip(Long tripId){
 
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new RuntimeException("Trip not found"));
-        if(!trip.getCreatedBy().getUserId().equals(userService.getCurrentUser().getUserId())){
+        if(!trip.getCreatedBy().getUserId().equals(userService.getCurrentUser().getUserId())) {
             throw new RuntimeException("No access");
-
         }
         tripRepository.delete(trip);
     }
@@ -63,6 +67,17 @@ public class TripService {
         }
         tripRepository.save(trip);
         return new TripResponse(trip.getTripId(), trip.getTripName(), trip.getDestination(), trip.getStartDate(), trip.getEndDate(), trip.getCreatedAt(), trip.getCreatedBy().getUsername());
+    }
+
+    public List<TripResponse> getUserTrips(){
+        User cur_user = userService.getCurrentUser();
+        List <Trip> trips = tripRepository.findByCreatedBy(cur_user);
+        List <TripResponse> result = new ArrayList<>();
+        for(Trip trip : trips){
+            TripResponse response = new TripResponse(trip.getTripId(),trip.getTripName(), trip.getDestination(), trip.getStartDate(), trip.getEndDate(), trip.getCreatedAt(), trip.getCreatedBy().getUsername());
+            result.add(response);
+        }
+        return result;
     }
 
 
