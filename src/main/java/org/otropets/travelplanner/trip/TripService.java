@@ -2,6 +2,10 @@ package org.otropets.travelplanner.trip;
 
 import org.otropets.travelplanner.auth.User;
 import org.otropets.travelplanner.auth.UserService;
+import org.otropets.travelplanner.participant.Participant;
+import org.otropets.travelplanner.participant.ParticipantRepository;
+import org.otropets.travelplanner.participant.ParticipantStatus;
+import org.otropets.travelplanner.participant.TripRole;
 import org.otropets.travelplanner.trip.dto.CreateTripRequest;
 import org.otropets.travelplanner.trip.dto.TripResponse;
 import org.otropets.travelplanner.trip.dto.UpdateTripRequest;
@@ -16,9 +20,11 @@ import java.util.List;
 public class TripService {
     private final UserService userService;
     private final TripRepository tripRepository;
-    public TripService(UserService userService, TripRepository tripRepository) {
+    private final ParticipantRepository participantRepository;
+    public TripService(UserService userService, TripRepository tripRepository, ParticipantRepository participantRepository) {
         this.userService = userService;
         this.tripRepository = tripRepository;
+        this.participantRepository = participantRepository;
     }
 
     public TripResponse createTrip(CreateTripRequest request)
@@ -31,13 +37,20 @@ public class TripService {
                 .createdBy(userService.getCurrentUser())
                 .build();
         tripRepository.save(trip);
+
+        Participant participant = Participant.builder().role(TripRole.ADMIN).trip(trip).user(userService.getCurrentUser()).status(ParticipantStatus.ACCEPTED).build();
+        participantRepository.save(participant);
+
         return new TripResponse(trip.getTripId(), trip.getTripName(), trip.getDestination(), trip.getStartDate(), trip.getEndDate(), trip.getCreatedAt(), trip.getCreatedBy().getUsername());
     }
 
     public void deleteTrip(Long tripId){
 
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new RuntimeException("Trip not found"));
-        if(!trip.getCreatedBy().getUserId().equals(userService.getCurrentUser().getUserId())) {
+        // add a check for budget beeing handled later
+        Participant p = participantRepository.findByTripAndUser(trip, userService.getCurrentUser()).orElseThrow(() -> new RuntimeException("partiipant not found"));
+        if(p.getRole() != TripRole.ADMIN)
+        {
             throw new RuntimeException("No access");
         }
         tripRepository.delete(trip);
@@ -49,7 +62,8 @@ public class TripService {
 
     public TripResponse updateTrip(Long tripId, UpdateTripRequest updateTripRequest){
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new RuntimeException("Trip not found"));
-        if(!trip.getCreatedBy().getUserId().equals(userService.getCurrentUser().getUserId())) {
+        Participant p = participantRepository.findByTripAndUser(trip, userService.getCurrentUser()).orElseThrow(() -> new RuntimeException("participant not found"));
+        if(p.getRole() != TripRole.ADMIN){
             throw new RuntimeException("No access");
         }
         if(updateTripRequest.getTripName() != null){

@@ -31,9 +31,11 @@ public class ParticipantService {
     public ParticipantResponse inviteParticipant(Long tripId, InviteRequest request){
         User cur_user = userService.getCurrentUser();
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new RuntimeException("trip not found"));
-        // to be changed to get.role() != ADMIN
-        if(!trip.getCreatedBy().getUserId().equals(cur_user.getUserId())){
-            throw new RuntimeException("no admin access");
+        Participant p = participantRepository.findByTripAndUser(trip, cur_user).orElseThrow(()->new RuntimeException("participant not found"));
+
+        if(p.getRole() != TripRole.ADMIN)
+        {
+            throw new RuntimeException("no permission to invite new participant");
         }
 
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new RuntimeException("user not found"));
@@ -67,8 +69,12 @@ public class ParticipantService {
     {
         Participant participant = participantRepository.findById(participandId).orElseThrow(() -> new RuntimeException("participant not found"));
         Trip trip = participant.getTrip();
-        if(!userService.getCurrentUser().getUserId().equals(trip.getCreatedBy().getUserId())){
-            throw new RuntimeException("no admin rights");
+        User user = userService.getCurrentUser();
+        Participant p = participantRepository.findByTripAndUser(trip, user).orElseThrow(() -> new RuntimeException("participant not found"));
+
+        if(p.getRole() != TripRole.ADMIN)
+        {
+            throw new RuntimeException("no permission");
         }
         participantRepository.delete(participant);
     }
@@ -120,14 +126,15 @@ public class ParticipantService {
     {
         Participant participant = participantRepository.findById(participantId).orElseThrow(() -> new RuntimeException("participant not found"));
         Trip trip = participant.getTrip();
-        if(!userService.getCurrentUser().getUserId().equals(trip.getCreatedBy().getUserId()))
+        User user = userService.getCurrentUser();
+        Participant p = participantRepository.findByTripAndUser(trip, user).orElseThrow(() -> new RuntimeException("participant not found"));
+        if(p.getRole() != TripRole.ADMIN)
         {
-            throw new RuntimeException("No access, admin role required");
+            throw new RuntimeException("no permission");
         }
         participant.setRole(role);
         participantRepository.save(participant);
         return new ParticipantResponse(participant.getParticipantId(), participant.getUser().getUsername(), participant.getUser().getEmail(), participant.getRole(), participant.getStatus(),participant.getJoinedAt());
-
     }
 
 }
