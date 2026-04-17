@@ -48,8 +48,8 @@ public class TripService {
 
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new RuntimeException("Trip not found"));
         // add a check for budget beeing handled later
-        Participant p = participantRepository.findByTripAndUser(trip, userService.getCurrentUser()).orElseThrow(() -> new RuntimeException("partiipant not found"));
-        if(p.getRole() != TripRole.ADMIN)
+        Participant p = participantRepository.findByTripAndUser(trip, userService.getCurrentUser()).orElseThrow(() -> new RuntimeException("participant not found"));
+        if(p.getRole() != TripRole.ADMIN && p.getStatus() != ParticipantStatus.ACCEPTED)
         {
             throw new RuntimeException("No access");
         }
@@ -63,7 +63,7 @@ public class TripService {
     public TripResponse updateTrip(Long tripId, UpdateTripRequest updateTripRequest){
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new RuntimeException("Trip not found"));
         Participant p = participantRepository.findByTripAndUser(trip, userService.getCurrentUser()).orElseThrow(() -> new RuntimeException("participant not found"));
-        if(p.getRole() != TripRole.ADMIN){
+        if(p.getRole() != TripRole.ADMIN && p.getStatus() != ParticipantStatus.ACCEPTED){
             throw new RuntimeException("No access");
         }
         if(updateTripRequest.getTripName() != null){

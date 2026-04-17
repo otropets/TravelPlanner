@@ -51,6 +51,12 @@ public class ExpenseService {
         expenseRepository.delete(expense);
     }
 
+    public ExpenseResponseDTO getExpense(Long expenseId){
+        Expense expense = expenseRepository.findById(expenseId).orElseThrow(() -> new RuntimeException("expense not found"));
+        return new ExpenseResponseDTO(expense.getExpenseId(), expense.getName(), expense.getAmount(), expense.getTrip().getTripId(), expense.getCreatedAt(), expense.getCreatedBy().getUsername(), expense.getDescription());
+    }
+
+
     public List<ExpenseResponseDTO> getExpensesList(Long tripId){
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new RuntimeException("trip not found"));
 

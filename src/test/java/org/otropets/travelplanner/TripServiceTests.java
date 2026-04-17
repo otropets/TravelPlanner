@@ -7,6 +7,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.otropets.travelplanner.auth.User;
 import org.otropets.travelplanner.auth.UserService;
+import org.otropets.travelplanner.participant.Participant;
+import org.otropets.travelplanner.participant.ParticipantRepository;
+import org.otropets.travelplanner.participant.ParticipantStatus;
+import org.otropets.travelplanner.participant.TripRole;
 import org.otropets.travelplanner.trip.Trip;
 import org.otropets.travelplanner.trip.TripRepository;
 import org.otropets.travelplanner.trip.TripService;
@@ -30,6 +34,8 @@ public class TripServiceTests {
     @Mock
     TripRepository repository;
 
+    @Mock
+    ParticipantRepository participantRepository;
     @Mock
     UserService userService;
 
@@ -57,8 +63,10 @@ public class TripServiceTests {
     void deleteTripSuccessfully(){
         User mockUser = User.builder().userId(1L).username("john").password("password123").email("john@email.com").firstName("john").lastName("mcneil").build();
         Trip mockTrip = Trip.builder().tripName("trip to Paris").destination("Paris").createdBy(mockUser).startDate(LocalDate.of(2026, 1,1)).endDate(LocalDate.of(2026,1,4)).build();
+        Participant p = Participant.builder().participantId(2L).role(TripRole.ADMIN).trip(mockTrip).user(mockUser).status(ParticipantStatus.ACCEPTED).build();
         when(userService.getCurrentUser()).thenReturn(mockUser);
         when(repository.findById(1L)).thenReturn(Optional.of(mockTrip));
+        when(participantRepository.findByTripAndUser(any(), any())).thenReturn(Optional.ofNullable(p));
         assertDoesNotThrow(()-> tripService.deleteTrip(1L));
     }
 
@@ -102,10 +110,10 @@ public class TripServiceTests {
         User mockUser = User.builder().userId(1L).username("john").password("password123").email("john@email.com").firstName("john").lastName("mcneil").build();
         Trip mockTrip = Trip.builder().tripId(2L).tripName("Trip to Paris").destination("Paris")
                 .startDate(LocalDate.of(2026, 1,1)).endDate(LocalDate.of(2026, 1, 4)).createdBy(mockUser).build();
-
+        Participant p = Participant.builder().participantId(3L).role(TripRole.ADMIN).trip(mockTrip).user(mockUser).status(ParticipantStatus.ACCEPTED).build();
         when(userService.getCurrentUser()).thenReturn(mockUser);
         when(repository.findById(2L)).thenReturn(Optional.of(mockTrip));
-
+        when(participantRepository.findByTripAndUser(any(), any())).thenReturn(Optional.of(p));
         UpdateTripRequest request = new UpdateTripRequest("updated trip to Paris", null, null, null);
         TripResponse response = tripService.updateTrip(2L, request);
 

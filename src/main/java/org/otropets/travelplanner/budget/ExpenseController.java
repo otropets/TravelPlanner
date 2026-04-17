@@ -32,8 +32,14 @@ public class ExpenseController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/{expenseId}")
+    public ResponseEntity<ExpenseResponseDTO> getExpense(@PathVariable Long expenseId){
+        ExpenseResponseDTO response = service.getExpense(expenseId);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/trip/{tripId}/list")
-    public ResponseEntity<List<ExpenseResponseDTO>> getExpenses(@PathVariable Long tripId){
+    public ResponseEntity<List<ExpenseResponseDTO>> getExpensesList(@PathVariable Long tripId){
         List<ExpenseResponseDTO> res = service.getExpensesList(tripId);
         return ResponseEntity.ok(res);
     }
