@@ -3,6 +3,9 @@ package org.otropets.travelplanner.auth;
 import org.otropets.travelplanner.auth.dto.AuthResponse;
 import org.otropets.travelplanner.auth.dto.LoginRequest;
 import org.otropets.travelplanner.auth.dto.RegisterRequest;
+import org.otropets.travelplanner.exception.BadRequestException;
+import org.otropets.travelplanner.exception.ConflictException;
+import org.otropets.travelplanner.exception.NotFoundException;
 import org.otropets.travelplanner.security.JwtService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,7 +28,7 @@ public class UserService {
     {
         if(userRepository.existsByEmail(registerRequest.getEmail()) || userRepository.existsByUsername(registerRequest.getUsername()))
         {
-            throw new RuntimeException("Email or username already taken");
+            throw new ConflictException("Email or username already taken");
         }
 
         String hashedPassword = passwordEncoder.encode(registerRequest.getPassword());
@@ -37,10 +40,10 @@ public class UserService {
 
     public AuthResponse login(LoginRequest loginRequest)
     {
-      User user = userRepository.findByEmail(loginRequest.getEmail()).orElseThrow(() ->new RuntimeException("User not found"));
+      User user = userRepository.findByEmail(loginRequest.getEmail()).orElseThrow(() ->new NotFoundException("User not found"));
       if(!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword()))
       {
-          throw new RuntimeException("Invalid password");
+          throw new BadRequestException("Invalid password");
       }
       String token = jwtService.generateToken(user.getEmail());
       return new AuthResponse(user.getUsername(), user.getEmail(), token);
@@ -48,7 +51,7 @@ public class UserService {
 
     public User getCurrentUser(){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        return userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
     }
 
 }

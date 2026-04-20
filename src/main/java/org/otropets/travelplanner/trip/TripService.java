@@ -2,6 +2,8 @@ package org.otropets.travelplanner.trip;
 
 import org.otropets.travelplanner.auth.User;
 import org.otropets.travelplanner.auth.UserService;
+import org.otropets.travelplanner.exception.ForbiddenException;
+import org.otropets.travelplanner.exception.NotFoundException;
 import org.otropets.travelplanner.participant.Participant;
 import org.otropets.travelplanner.participant.ParticipantRepository;
 import org.otropets.travelplanner.participant.ParticipantStatus;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -46,25 +49,27 @@ public class TripService {
 
     public void deleteTrip(Long tripId){
 
-        Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new RuntimeException("Trip not found"));
-        // add a check for budget beeing handled later
-        Participant p = participantRepository.findByTripAndUser(trip, userService.getCurrentUser()).orElseThrow(() -> new RuntimeException("participant not found"));
-        if(p.getRole() != TripRole.ADMIN && p.getStatus() != ParticipantStatus.ACCEPTED)
+        Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new NotFoundException("Trip not found"));
+        Participant p = participantRepository.findByTripAndUser(trip, userService.getCurrentUser()).orElseThrow(() -> new NotFoundException("Participant not found"));
+        if(p.getRole() != TripRole.ADMIN || p.getStatus() != ParticipantStatus.ACCEPTED)
         {
-            throw new RuntimeException("No access");
+            throw new ForbiddenException("No access");
         }
+        List<Participant> participants = participantRepository.findByTrip(trip);
+        participantRepository.deleteAll(participants);
+
         tripRepository.delete(trip);
     }
     public TripResponse getTrip(Long tripId){
-        Trip trip = tripRepository.findById(tripId).orElseThrow( () -> new RuntimeException("trip not found"));
+        Trip trip = tripRepository.findById(tripId).orElseThrow( () -> new NotFoundException("Trip not found"));
         return new TripResponse(trip.getTripId(), trip.getTripName(),trip.getDestination(), trip.getStartDate(), trip.getEndDate(), trip.getCreatedAt(), trip.getCreatedBy().getUsername());
     }
 
     public TripResponse updateTrip(Long tripId, UpdateTripRequest updateTripRequest){
-        Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new RuntimeException("Trip not found"));
-        Participant p = participantRepository.findByTripAndUser(trip, userService.getCurrentUser()).orElseThrow(() -> new RuntimeException("participant not found"));
-        if(p.getRole() != TripRole.ADMIN && p.getStatus() != ParticipantStatus.ACCEPTED){
-            throw new RuntimeException("No access");
+        Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new NotFoundException("Trip not found"));
+        Participant p = participantRepository.findByTripAndUser(trip, userService.getCurrentUser()).orElseThrow(() -> new NotFoundException("Participant not found"));
+        if(p.getRole() != TripRole.ADMIN || p.getStatus() != ParticipantStatus.ACCEPTED){
+            throw new ForbiddenException("No access");
         }
         if(updateTripRequest.getTripName() != null){
             trip.setTripName(updateTripRequest.getTripName());
@@ -83,15 +88,23 @@ public class TripService {
         return new TripResponse(trip.getTripId(), trip.getTripName(), trip.getDestination(), trip.getStartDate(), trip.getEndDate(), trip.getCreatedAt(), trip.getCreatedBy().getUsername());
     }
 
-    public List<TripResponse> getUserTrips(){
-        User cur_user = userService.getCurrentUser();
-        List <Trip> trips = tripRepository.findByCreatedBy(cur_user);
-        List <TripResponse> result = new ArrayList<>();
-        for(Trip trip : trips){
-            TripResponse response = new TripResponse(trip.getTripId(),trip.getTripName(), trip.getDestination(), trip.getStartDate(), trip.getEndDate(), trip.getCreatedAt(), trip.getCreatedBy().getUsername());
-            result.add(response);
-        }
-        return result;
+    public List<TripResponse> getUserTrips() {
+        User currentUser = userService.getCurrentUser();
+
+        List<Participant> participations = participantRepository
+                .findByUserAndStatus(currentUser, ParticipantStatus.ACCEPTED);
+
+        return participations.stream()
+                .map(p -> new TripResponse(
+                        p.getTrip().getTripId(),
+                        p.getTrip().getTripName(),
+                        p.getTrip().getDestination(),
+                        p.getTrip().getStartDate(),
+                        p.getTrip().getEndDate(),
+                        p.getTrip().getCreatedAt(),
+                        p.getTrip().getCreatedBy().getUsername()
+                ))
+                .collect(Collectors.toList());
     }
 
 

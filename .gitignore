@@ -34,3 +34,4 @@ build/
 application.yaml
 .DS_Store
 **/.DS_Store
+/docker-compose.yml

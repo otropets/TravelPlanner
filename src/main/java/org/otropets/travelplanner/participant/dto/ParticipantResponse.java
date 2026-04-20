@@ -19,5 +19,4 @@ public class ParticipantResponse {
     private TripRole role;
     private ParticipantStatus status;
     private LocalDateTime joinedAt;
-
 }

@@ -72,5 +72,12 @@ public class ParticipantController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/invitations")
+    public ResponseEntity<List<ParticipantResponse>> getInvitations()
+    {
+        List<ParticipantResponse> invitations =  service.getInvitations();
+        return ResponseEntity.ok(invitations);
+    }
+
 
 }

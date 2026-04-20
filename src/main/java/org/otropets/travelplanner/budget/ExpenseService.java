@@ -4,6 +4,8 @@ import org.otropets.travelplanner.auth.User;
 import org.otropets.travelplanner.auth.UserService;
 import org.otropets.travelplanner.budget.dto.CreateExpenseDTO;
 import org.otropets.travelplanner.budget.dto.ExpenseResponseDTO;
+import org.otropets.travelplanner.exception.ForbiddenException;
+import org.otropets.travelplanner.exception.NotFoundException;
 import org.otropets.travelplanner.participant.Participant;
 import org.otropets.travelplanner.participant.ParticipantRepository;
 import org.otropets.travelplanner.participant.TripRole;
@@ -31,12 +33,12 @@ public class ExpenseService {
 
 
     public ExpenseResponseDTO createExpense(Long tripId, CreateExpenseDTO request) {
-        Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new RuntimeException("trip not found"));
+        Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new NotFoundException("Trip not found"));
         User user = userService.getCurrentUser();
-        Participant participant = participantRepository.findByTripAndUser(trip, user).orElseThrow(() -> new RuntimeException("participant not found"));
+        Participant participant = participantRepository.findByTripAndUser(trip, user).orElseThrow(() -> new NotFoundException("Participant not found"));
 
         if (participant.getRole() != TripRole.ADMIN && participant.getRole() != TripRole.PARTICIPANT) {
-            throw new RuntimeException("no access to create expenses");
+            throw new ForbiddenException("No access to create expenses");
         }
         Expense expense = Expense.builder().name(request.getName()).amount(request.getAmount()).createdBy(user).trip(trip).description(request.getDescription()).build();
         expenseRepository.save(expense);
@@ -44,21 +46,21 @@ public class ExpenseService {
     }
 
     public void deleteExpense(Long expenseId){
-        Expense expense = expenseRepository.findById(expenseId).orElseThrow(() -> new RuntimeException("expense not found"));
+        Expense expense = expenseRepository.findById(expenseId).orElseThrow(() -> new NotFoundException("Expense not found"));
         if(!expense.getCreatedBy().getUserId().equals(userService.getCurrentUser().getUserId())){
-            throw new RuntimeException("no access, you have not created this expense");
+            throw new ForbiddenException("No access, you have not created this expense");
         }
         expenseRepository.delete(expense);
     }
 
     public ExpenseResponseDTO getExpense(Long expenseId){
-        Expense expense = expenseRepository.findById(expenseId).orElseThrow(() -> new RuntimeException("expense not found"));
+        Expense expense = expenseRepository.findById(expenseId).orElseThrow(() -> new NotFoundException("Expense not found"));
         return new ExpenseResponseDTO(expense.getExpenseId(), expense.getName(), expense.getAmount(), expense.getTrip().getTripId(), expense.getCreatedAt(), expense.getCreatedBy().getUsername(), expense.getDescription());
     }
 
 
     public List<ExpenseResponseDTO> getExpensesList(Long tripId){
-        Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new RuntimeException("trip not found"));
+        Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new NotFoundException("Trip not found"));
 
         List <Expense> expenses = expenseRepository.findByTrip(trip);
         List <ExpenseResponseDTO> res = new ArrayList<>();
