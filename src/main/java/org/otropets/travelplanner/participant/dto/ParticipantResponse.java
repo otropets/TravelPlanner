@@ -3,8 +3,8 @@ package org.otropets.travelplanner.participant.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.otropets.travelplanner.participant.ParticipantStatus;
-import org.otropets.travelplanner.participant.TripRole;
+import org.otropets.travelplanner.participant.model.ParticipantStatus;
+import org.otropets.travelplanner.participant.model.TripRole;
 
 import java.time.LocalDateTime;
 

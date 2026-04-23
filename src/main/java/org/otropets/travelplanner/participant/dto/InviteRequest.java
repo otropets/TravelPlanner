@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.otropets.travelplanner.participant.TripRole;
+import org.otropets.travelplanner.participant.model.TripRole;
 
 @Data
 @AllArgsConstructor

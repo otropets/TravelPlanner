@@ -6,17 +6,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.otropets.travelplanner.auth.User;
-import org.otropets.travelplanner.auth.UserRepository;
-import org.otropets.travelplanner.auth.UserService;
-import org.otropets.travelplanner.participant.*;
+import org.otropets.travelplanner.auth.model.User;
+import org.otropets.travelplanner.auth.repository.UserRepository;
+import org.otropets.travelplanner.auth.service.UserService;
 import org.otropets.travelplanner.participant.dto.InviteRequest;
 import org.otropets.travelplanner.participant.dto.ParticipantResponse;
-import org.otropets.travelplanner.trip.Trip;
-import org.otropets.travelplanner.trip.TripRepository;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.otropets.travelplanner.participant.model.Participant;
+import org.otropets.travelplanner.participant.model.ParticipantStatus;
+import org.otropets.travelplanner.participant.model.TripRole;
+import org.otropets.travelplanner.participant.repository.ParticipantRepository;
+import org.otropets.travelplanner.participant.service.ParticipantService;
+import org.otropets.travelplanner.trip.model.Trip;
+import org.otropets.travelplanner.trip.repository.TripRepository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -198,6 +202,43 @@ public class ParticipantServiceTests {
 
         assertNotNull(response);
         assertEquals(TripRole.GUEST, response.getRole());
+    }
+    @Test
+    void getParticipantsListSuccessfully() {
+        User user = User.builder().userId(1L).username("john").email("john@gmail.com").password("password123").firstName("john").lastName("smith").build();
+        Trip trip = Trip.builder().tripId(1L).tripName("Trip to Paris").destination("Paris").startDate(LocalDate.of(2026,1,1)).endDate(LocalDate.of(2026,1,4)).createdBy(user).build();
+        Participant p1 = Participant.builder().participantId(1L).role(TripRole.ADMIN).trip(trip).user(user).status(ParticipantStatus.ACCEPTED).build();
+        Participant p2 = Participant.builder().participantId(2L).role(TripRole.PARTICIPANT).trip(trip).user(user).status(ParticipantStatus.ACCEPTED).build();
+
+        when(tripRepository.findById(1L)).thenReturn(Optional.of(trip));
+        when(participantRepository.findByTrip(trip)).thenReturn(List.of(p1, p2));
+
+        List<ParticipantResponse> response = participantService.getParticipantsList(1L);
+
+        assertNotNull(response);
+        assertEquals(2, response.size());
+    }
+
+    @Test
+    void getParticipantsListTripNotFound() {
+        when(tripRepository.findById(any())).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> participantService.getParticipantsList(1L));
+    }
+
+    @Test
+    void getInvitationsSuccessfully() {
+        User user = User.builder().userId(1L).username("john").email("john@gmail.com").password("password123").firstName("john").lastName("smith").build();
+        Trip trip = Trip.builder().tripId(1L).tripName("Trip to Paris").destination("Paris").startDate(LocalDate.of(2026,1,1)).endDate(LocalDate.of(2026,1,4)).createdBy(user).build();
+        Participant p1 = Participant.builder().participantId(1L).role(TripRole.PARTICIPANT).trip(trip).user(user).status(ParticipantStatus.PENDING).build();
+
+        when(userService.getCurrentUser()).thenReturn(user);
+        when(participantRepository.findByUserAndStatus(user, ParticipantStatus.PENDING)).thenReturn(List.of(p1));
+
+        List<ParticipantResponse> response = participantService.getInvitations();
+
+        assertNotNull(response);
+        assertEquals(1, response.size());
+        assertEquals(ParticipantStatus.PENDING, response.get(0).getStatus());
     }
 
 }
