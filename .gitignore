@@ -34,4 +34,4 @@ build/
 application-dev.yml
 .DS_Store
 **/.DS_Store
-/docker-compose.yml
+/src/main/resources/docker-compose.yml
