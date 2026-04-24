@@ -31,7 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
-application-dev.yml
+src/main/resources/application-dev.yml
 .DS_Store
 **/.DS_Store
 /src/main/resources/docker-compose.yml
