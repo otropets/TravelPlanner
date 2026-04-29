@@ -48,12 +48,14 @@ public class EmailService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(user.getEmail());
         message.setSubject("Password reset");
-        /*
+
         message.setText("Click to reset your password: " +
                 "https://frontendtravelplanner-production.up.railway.app/reset-password?token=" + tokenValue);
-        */
+        /*
         message.setText("Click to reset your password: " +
                 "http://localhost:5173/reset-password?token=" + tokenValue);
+        */
+
         mailSender.send(message);
     }
 
