@@ -28,7 +28,7 @@ public class EmailService {
     private final PasswordResetRepository passwordResetRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${SENDGRID_API_KEY}")
+    @Value("${SENDGRID_API_KEY:fake-test-key}")
     private String sendGridApiKey;
 
     public EmailService(UserRepository userRepository, PasswordResetRepository passwordResetRepository, PasswordEncoder passwordEncoder) {
