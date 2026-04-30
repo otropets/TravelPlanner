@@ -26,5 +26,4 @@ jobs:
           DATABASE_USERNAME: sa
           DATABASE_PASSWORD:
           JWT_SECRET: test-secret-key-for-ci-pipeline-long-enough
-          MAIL_USERNAME: test@test.com
-          MAIL_PASSWORD: test
+          SENDGRIP_API_KEY: fake-key-for-tests

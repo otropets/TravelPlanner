@@ -7,17 +7,6 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
-  mail:
-    host: smtp.sendgrid.net
-    port: 587
-    username: apikey
-    password: ${SENDGRID_API_KEY}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
 
 jwt:
   secret: ${JWT_SECRET}
