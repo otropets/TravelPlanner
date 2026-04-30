@@ -9,10 +9,10 @@ spring:
       ddl-auto: create-drop
     database-platform: org.hibernate.dialect.H2Dialect
   mail:
-    host: smtp.gmail.com
+    host: smtp.sendgrid.net
     port: 587
-    username: test@test.com
-    password: test
+    username: apikey
+    password: test-fake-key
     properties:
       mail:
         smtp:
